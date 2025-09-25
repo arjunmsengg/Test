@@ -1,0 +1,123 @@
+/*
+MIT License
+
+Copyright (c) 2021 Dipjyoti Metia
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+ */
+
+plugins {
+    id "java"
+    id "idea"
+    id "io.qameta.allure" version "2.12.0"
+}
+
+group 'github.com.MobileTestFramework'
+version = '2.0'
+
+ext {
+    allureVersion= "2.29.1"
+    restAssured="5.5.5"
+    poi="5.4.1"
+}
+
+repositories {
+    maven { // The google mirror is less flaky than mavenCentral()
+        url "https://maven-central.storage-download.googleapis.com/maven2/"
+    }
+    maven { url "https://packages.confluent.io/maven/" }
+    google()
+    gradlePluginPortal()
+}
+
+allure {
+    version = "2.25.0"
+}
+
+tasks.register('E2E', Test){
+    useTestNG() {
+        useDefaultListeners = true
+        suites 'src/test/suite/testng.xml'
+        // includeGroups 'smoke'
+    }
+    testLogging.events "passed", "skipped", "failed"
+    testLogging.showStandardStreams = true
+    beforeTest { descriptor ->
+        logger.lifecycle("Running test: " + descriptor)
+    }
+}
+
+dependencies {
+    implementation 'com.amazonaws:aws-java-sdk-s3:1.12.782'
+    implementation 'io.appium:java-client:9.4.0'
+    implementation 'org.seleniumhq.selenium:selenium-java:4.33.0'
+    implementation 'org.seleniumhq.selenium:selenium-remote-driver:4.30.0'
+    implementation 'org.assertj:assertj-core:3.27.3'
+    implementation 'org.hamcrest:hamcrest-all:1.3'
+    implementation 'org.testng:testng:7.11.0'
+    implementation 'com.googlecode.json-simple:json-simple:1.1.1'
+    implementation group: 'com.relevantcodes', name: 'extentreports', version: '2.41.2'
+    implementation 'commons-io:commons-io:20030203.000550'
+    implementation group: 'net.sourceforge.javacsv', name: 'javacsv', version: '2.0'
+    implementation "org.apache.poi:poi-ooxml:${poi}"
+    implementation "org.apache.poi:poi-excelant:${poi}"
+    implementation "org.apache.poi:poi-scratchpad:${poi}"
+    implementation "org.apache.poi:poi:${poi}"
+    implementation 'org.apache.xmlbeans:xmlbeans:5.3.0'
+    implementation 'com.microsoft.sqlserver:mssql-jdbc:12.10.0.jre11'
+    implementation 'io.qameta.allure:allure-gradle:2.8.1'
+    implementation "io.qameta.allure:allure-testng:${allureVersion}"
+    implementation "io.qameta.allure:allure-rest-assured:${allureVersion}"
+    implementation "io.qameta.allure:allure-attachments:${allureVersion}"
+    implementation 'com.github.javafaker:javafaker:1.0.2'
+    implementation "io.rest-assured:rest-assured:${restAssured}"
+    implementation "io.rest-assured:json-schema-validator:${restAssured}"
+    implementation "io.rest-assured:json-path:${restAssured}"
+    implementation 'org.json:json:20250517'
+    implementation 'org.slf4j:slf4j-simple:2.0.17'
+    implementation 'com.konghq:unirest-java:3.14.5'
+    implementation 'com.github.tomakehurst:wiremock:3.0.1'
+    implementation 'net.lightbody.bmp:browsermob-core:2.1.5'
+    implementation 'org.xerial:sqlite-jdbc:3.49.1.0'
+    implementation 'com.google.guava:guava:33.4.6-jre'
+    implementation 'com.typesafe:config:1.4.3'
+    implementation 'org.testcontainers:testcontainers:1.21.1'
+    implementation 'org.projectlombok:lombok:1.18.38'
+    annotationProcessor 'org.projectlombok:lombok:1.18.38'
+    implementation 'com.browserstack:browserstack-java-sdk:1.30.9'
+}
+
+javadoc {
+    source = project.sourceSets.main.java.srcDirs
+    options.linkSource true
+    failOnError false
+}
+
+gradle.startParameter.continueOnFailure = true
+
+// https://github.com/DiUS/java-faker/issues/331#issuecomment-1091166953
+configurations.configureEach {
+    resolutionStrategy.eachDependency { details ->
+        if (details.requested.module.toString() == 'org.yaml:snakeyaml') {
+            details.artifactSelection {
+                it.selectArtifact(DependencyArtifact.DEFAULT_TYPE, null, null)
+            }
+        }
+    }
+}
